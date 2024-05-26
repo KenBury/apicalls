@@ -29,7 +29,7 @@ class ApiServiceImpl(ApiService):
             response.raise_for_status()
             data = response.json()
             items.extend(data['data'])  # Assuming the paginated response uses 'data' for the data list
-            url = data.get('next')  # Assuming the paginated response uses 'next' for the next page URL
+            url = data.get('pagination', {}).get('nextURI')  # Get the next URI for pagination
             params = None  # Reset params after the first request
         
         return items
@@ -43,7 +43,7 @@ class ApiServiceImpl(ApiService):
             response.raise_for_status()
             data = response.json()
             details.extend(data['data'])  # Assuming the paginated response uses 'data' for the data list
-            url = data.get('next')  # Assuming the paginated response uses 'next' for the next page URL
+            url = data.get('pagination', {}).get('nextURI')  # Get the next URI for pagination
             params = None  # Reset params after the first request
         
         return details
