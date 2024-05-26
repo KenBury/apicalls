@@ -3,7 +3,7 @@ import requests
 
 class ApiService(ABC):
     @abstractmethod
-    def request_workEmails_by_dgname(self, endpoint: str, dgname: str, headers: dict = None, params: dict = None, verify: bool = True) -> list:
+    def get_associate_emails_by_dg(self, endpoint: str, dgname: str, headers: dict = None, verify: bool = True) -> list:
         pass
 
     @abstractmethod
@@ -14,20 +14,21 @@ class ApiServiceImpl(ApiService):
     def __init__(self, base_url: str):
         self.base_url = base_url
 
-    def request_workEmails_by_dgname(self, endpoint: str, dgname: str, headers: dict = None, params: dict = None, verify: bool = True) -> list:
+    def get_associate_emails_by_dg(self, endpoint: str, dgname: str, headers: dict = None, verify: bool = True) -> list:
         items = []
-        url = f"{self.base_url}/{endpoint}"
+        url = f"{self.base_url}/{endpoint}/"
         
-        # Include the dgname in the query parameters
-        if params is None:
-            params = {}
-        params['dgname'] = dgname
+        # Set the parameters
+        params = {
+            "expandGroup": f"corp\\{dgname}",
+            "fields": "WorkEmail"
+        }
         
         while url:
             response = requests.get(url, headers=headers, params=params, verify=verify)
             response.raise_for_status()
             data = response.json()
-            items.extend(data['results'])
+            items.extend(data['data'])  # Assuming the paginated response uses 'data' for the data list
             url = data.get('next')  # Assuming the paginated response uses 'next' for the next page URL
             params = None  # Reset params after the first request
         
@@ -41,7 +42,7 @@ class ApiServiceImpl(ApiService):
             response = requests.get(url, headers=headers, params=params, verify=verify)
             response.raise_for_status()
             data = response.json()
-            details.extend(data['results'])
+            details.extend(data['data'])  # Assuming the paginated response uses 'data' for the data list
             url = data.get('next')  # Assuming the paginated response uses 'next' for the next page URL
             params = None  # Reset params after the first request
         
