@@ -1,0 +1,90 @@
+from abc import ABC, abstractmethod
+
+class JSONFlattener(ABC):
+    @abstractmethod
+    def flatten_json(self, nested_json, parent_key='', sep='_'):
+        pass
+
+class MyJSONFlattener(JSONFlattener):
+    def flatten_json(self, nested_json, parent_key='', sep='_'):
+        """
+        Flatten a list of nested JSON objects.
+
+        Args:
+            nested_json (list): The list of JSON dictionaries to flatten.
+            parent_key (str): The base key string for the flattened keys.
+            sep (str): The separator between key levels in the flattened keys.
+
+        Returns:
+            list: The list of flattened JSON dictionaries.
+        """
+        flattened_list = []
+        
+        def flatten_dict(d, parent_key=''):
+            items = []
+            for k, v in d.items():
+                new_key = f'{parent_key}{sep}{k}' if parent_key else k
+                if isinstance(v, dict):
+                    items.extend(flatten_dict(v, new_key).items())
+                elif isinstance(v, list):
+                    for i, item in enumerate(v):
+                        if isinstance(item, dict):
+                            items.extend(flatten_dict(item, f"{new_key}_{i}").items())
+                        else:
+                            items.append((f"{new_key}_{i}", item))
+                else:
+                    items.append((new_key, v))
+            return dict(items)
+        
+        for item in nested_json:
+            if isinstance(item, dict):
+                flattened_list.append(flatten_dict(item))
+        
+        return flattened_list
+
+# Example usage:
+nested_json_list = [
+    {
+        "name": "John",
+        "address": {
+            "street": "123 Main St",
+            "city": "New York"
+        },
+        "phones": [
+            {"type": "home", "number": "212-555-1234"},
+            {"type": "work", "number": "646-555-4567"}
+        ],
+        "email": "john@example.com"
+    },
+    {
+        "name": "Alice",
+        "location": {
+            "latitude": "34.0522 N",
+            "longitude": "118.2437 W"
+        },
+        "contacts": [
+            {"method": "email", "detail": "alice@example.com"},
+            {"method": "phone", "detail": "310-555-7890"}
+        ],
+        "email": "alice@example.com"
+    },
+    {
+        "name": "Bob",
+        "company": {
+            "name": "Tech Solutions",
+            "address": {
+                "street": "789 Business Rd",
+                "city": "San Francisco"
+            }
+        },
+        "projects": [
+            {"name": "Project A", "deadline": "2024-06-30"},
+            {"name": "Project B", "deadline": "2024-09-15"}
+        ],
+        "email": "bob@example.com"
+    }
+]
+
+flattener = MyJSONFlattener()
+flattened_json_list = flattener.flatten_json(nested_json_list)
+print(flattened_json_list)
