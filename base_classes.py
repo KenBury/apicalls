@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import pandas as pd
 
-class DataHandler(ABC):
+class DataService(ABC):
     @abstractmethod
     def load_data(self) -> (pd.DataFrame, pd.DataFrame):
         pass
@@ -14,7 +14,7 @@ class DataHandler(ABC):
     def merge_data(self, families: pd.DataFrame, individuals: pd.DataFrame) -> pd.DataFrame:
         pass
 
-class Exporter(ABC):
+class ExcelService(ABC):
     @abstractmethod
-    def export(self, dataframe: pd.DataFrame):
+    def export(self, dataframe: pd.DataFrame, export_type: str, column_headings: list, additional_data: list = None):
         pass
