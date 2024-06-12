@@ -2,26 +2,26 @@ import pandas as pd
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Font, PatternFill
-from base_classes import Exporter
+from base_classes import ExcelService
 
-class ExcelExporter(Exporter):
+class ExcelServiceImpl(ExcelService):
     def __init__(self, output_path):
         self.output_path = output_path
 
-    def export(self, dataframe: pd.DataFrame):
-        raise NotImplementedError("Subclasses should implement this method")
+    def export(self, dataframe: pd.DataFrame, export_type: str, column_headings: list, additional_data: list = None):
+        if export_type == "basic":
+            self.basic_export(dataframe, column_headings)
+        elif export_type == "detailed":
+            self.detailed_export(dataframe, column_headings, additional_data)
+        else:
+            raise ValueError(f"Unknown export type: {export_type}")
 
-class BasicExcelExporter(ExcelExporter):
-    def __init__(self, output_path, column_headings):
-        super().__init__(output_path)
-        self.column_headings = column_headings
-
-    def export(self, dataframe: pd.DataFrame):
+    def basic_export(self, dataframe: pd.DataFrame, column_headings: list):
         wb = Workbook()
         ws = wb.active
 
         # Write custom column headings
-        for idx, heading in enumerate(self.column_headings, start=1):
+        for idx, heading in enumerate(column_headings, start=1):
             ws.cell(row=1, column=idx, value=heading)
 
         # Write the dataframe to the worksheet
@@ -48,18 +48,12 @@ class BasicExcelExporter(ExcelExporter):
         wb.save(self.output_path)
         print(f"The data has been exported to {self.output_path}")
 
-class DetailedExcelExporter(ExcelExporter):
-    def __init__(self, output_path, column_headings, additional_data):
-        super().__init__(output_path)
-        self.column_headings = column_headings
-        self.additional_data = additional_data
-
-    def export(self, dataframe: pd.DataFrame):
+    def detailed_export(self, dataframe: pd.DataFrame, column_headings: list, additional_data: list):
         wb = Workbook()
         ws = wb.active
 
         # Write custom column headings
-        for idx, heading in enumerate(self.column_headings, start=1):
+        for idx, heading in enumerate(column_headings, start=1):
             ws.cell(row=1, column=idx, value=heading)
 
         # Write the dataframe to the worksheet
@@ -68,7 +62,7 @@ class DetailedExcelExporter(ExcelExporter):
                 ws.cell(row=r_idx, column=c_idx, value=value)
 
         # Example of adding additional data
-        for add_row in self.additional_data:
+        for add_row in additional_data:
             ws.append(add_row)
 
         # Apply formatting (example: make the header bold and apply fill color)
