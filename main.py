@@ -1,26 +1,40 @@
-from .api_service import ApiServiceImpl
-from .data_service import DataServiceImpl
-from .item_processor import ItemProcessor
+import json
+from data_handler import PickleDataHandler
+from excel_exporter import ExcelExporter
 
-def main():
-    base_url = "https://api.example.com"
-    api_service = ApiServiceImpl(base_url)
-    data_service = DataServiceImpl()
+def main(family_file_path, individual_file_path, output_path, json_text):
+    # Parse the JSON input
+    config = json.loads(json_text)
+    family_names = config.get("family_names", [])
 
-    items_endpoint = "associates"
-    details_endpoint = "associates"
-    dgname = "dgname_value"  # Specify the dgname here
-    headers = {
-        "Authorization": "Bearer YOUR_ACCESS_TOKEN",
-        "Accept": "application/json"
-    }  # Add any necessary headers for the requests
-    details_params = {}  # Add any necessary parameters for the item details request
-    verify = False  # Set to False to skip SSL verification (use with caution)
+    # Initialize handlers
+    data_handler = PickleDataHandler(family_file_path, individual_file_path)
+    excel_exporter = ExcelExporter(output_path)
 
-    processor = ItemProcessor(api_service, data_service)
-    dataframe = processor.process_associate_emails_by_dg(items_endpoint, details_endpoint, dgname, headers, details_params, verify)
+    # Load data
+    families, individuals = data_handler.load_data()
 
-    print(dataframe)
+    # Filter data based on JSON input
+    filtered_families, filtered_individuals = data_handler.filter_data(families, individuals, family_names)
+
+    # Merge data
+    final_df = data_handler.merge_data(filtered_families, filtered_individuals)
+
+    # Export to Excel
+    excel_exporter.export(final_df)
 
 if __name__ == "__main__":
-    main()
+    # File paths
+    family_file_path = 'data/families.pkl'
+    individual_file_path = 'data/individuals.pkl'
+    output_path = 'family_members.xlsx'
+
+    # Example JSON input
+    json_text = '''
+    {
+        "family_names": ["Smith", "Johnson"]
+    }
+    '''
+
+    # Execute main function
+    main(family_file_path, individual_file_path, output_path, json_text)
