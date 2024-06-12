@@ -5,15 +5,20 @@ from openpyxl.styles import Font, PatternFill
 from base_classes import Exporter
 
 class ExcelExporter(Exporter):
-    def __init__(self, output_path):
+    def __init__(self, output_path, column_headings):
         self.output_path = output_path
+        self.column_headings = column_headings
 
     def export(self, dataframe: pd.DataFrame):
         wb = Workbook()
         ws = wb.active
 
+        # Write custom column headings
+        for idx, heading in enumerate(self.column_headings, start=1):
+            ws.cell(row=1, column=idx, value=heading)
+
         # Write the dataframe to the worksheet
-        for r_idx, row in enumerate(dataframe_to_rows(dataframe, index=False, header=True), 1):
+        for r_idx, row in enumerate(dataframe_to_rows(dataframe, index=False, header=False), 2):  # Start from row 2 for data
             for c_idx, value in enumerate(row, 1):
                 ws.cell(row=r_idx, column=c_idx, value=value)
 
@@ -35,3 +40,4 @@ class ExcelExporter(Exporter):
         # Save the workbook
         wb.save(self.output_path)
         print(f"The data has been exported to {self.output_path}")
+
