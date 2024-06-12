@@ -18,6 +18,11 @@ class PickleDataHandler(DataHandler):
 
     def merge_data(self, families: pd.DataFrame, individuals: pd.DataFrame) -> pd.DataFrame:
         merged_df = pd.merge(individuals, families, on='family_id', suffixes=('_individual', '_family'))
-        final_df = merged_df[['family_name', 'individual_name', 'birthdate']]
+        # Concatenate birthdate and death date (if available) with a newline separator
+        merged_df['birthdate'] = merged_df['birthdate'].astype(str)
+        merged_df['deathdate'] = merged_df['deathdate'].astype(str)
+        merged_df['birthdate_deathdate'] = merged_df['birthdate'] + '\n' + merged_df['deathdate'].replace('nan', '', regex=True)
+        # Select required columns and reorder
+        final_df = merged_df[['family_name', 'individual_name', 'birthdate_deathdate']]
         final_df = final_df.sort_values(by=['family_name', 'individual_name'])
         return final_df
